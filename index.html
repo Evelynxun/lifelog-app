@@ -1,0 +1,58 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#d8ecff" />
+    <title>事件列表</title>
+    <link rel="manifest" href="manifest.json" />
+    <link rel="icon" href="icon.svg" type="image/svg+xml" />
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <main class="app">
+      <section class="panel" aria-labelledby="page-title">
+        <h1 id="page-title">事件列表</h1>
+
+        <div class="quick-entry">
+          <label class="field-label" for="quickInput">快速记录</label>
+          <input
+            id="quickInput"
+            type="text"
+            placeholder="输入一句话，按 Enter 添加"
+            autocomplete="off"
+          />
+        </div>
+
+        <section class="summary-section" aria-labelledby="summary-title">
+          <h2 class="section-title" id="summary-title">📊 最近7天概览</h2>
+          <ul class="summary-list" id="summaryList" aria-label="最近7天完成概览"></ul>
+        </section>
+
+        <section class="event-section today-section" aria-labelledby="today-title">
+          <h2 class="section-title" id="today-title">📅 Today</h2>
+          <ul class="event-list today-list" id="todayList" aria-label="今日待完成事件"></ul>
+        </section>
+
+        <form class="event-form" id="eventForm">
+          <label class="field-label" for="eventInput">事件内容</label>
+          <input
+            id="eventInput"
+            name="event"
+            type="text"
+            placeholder="输入一件想记录的事"
+            autocomplete="off"
+          />
+          <button type="submit">添加事件</button>
+        </form>
+
+        <section class="event-section" aria-labelledby="all-events-title">
+          <h2 class="section-title" id="all-events-title">All Events</h2>
+          <ul class="event-list" id="eventList" aria-label="已添加事件"></ul>
+        </section>
+      </section>
+    </main>
+
+    <script src="app.js"></script>
+  </body>
+</html>
