@@ -638,6 +638,122 @@ h1 {
   box-shadow: 0 12px 24px rgba(10, 132, 255, 0.12);
 }
 
+.today-focus {
+  margin-bottom: 18px;
+}
+
+.focus-card {
+  display: grid;
+  gap: 8px;
+  width: 100%;
+  min-height: auto;
+  padding: 20px 18px;
+  border: 1px solid rgba(10, 132, 255, 0.42);
+  border-left: 7px solid var(--color-primary);
+  border-radius: 22px;
+  background: linear-gradient(180deg, #0a84ff 0%, #59aaff 100%);
+  color: #ffffff;
+  text-align: left;
+  box-shadow: 0 24px 54px rgba(10, 132, 255, 0.34);
+}
+
+.focus-card:disabled {
+  opacity: 1;
+}
+
+.focus-title {
+  font-size: 14px;
+  font-weight: 760;
+  color: rgba(255, 255, 255, 0.86);
+}
+
+.focus-text {
+  overflow-wrap: anywhere;
+  font-size: 22px;
+  line-height: 1.2;
+  font-weight: 840;
+  color: #ffffff;
+}
+
+.focus-hint {
+  font-size: 13px;
+  font-weight: 620;
+  color: rgba(255, 255, 255, 0.82);
+}
+
+.focus-card.is-focus-complete {
+  border-color: rgba(47, 111, 77, 0.34);
+  border-left-color: #2f6f4d;
+  background: linear-gradient(180deg, #dff5e8 0%, #f2fbf5 100%);
+  color: #1f5138;
+  box-shadow: 0 18px 38px rgba(47, 111, 77, 0.18);
+}
+
+.focus-card.is-focus-complete .focus-title,
+.focus-card.is-focus-complete .focus-text,
+.focus-card.is-focus-complete .focus-hint {
+  color: #1f5138;
+}
+
+.identity-layer {
+  display: grid;
+  gap: 10px;
+  margin-bottom: 16px;
+  padding: 14px 16px;
+  border: 1px solid rgba(10, 132, 255, 0.22);
+  border-radius: var(--radius-card);
+  background: #ffffff;
+  box-shadow: 0 12px 28px rgba(15, 23, 42, 0.1);
+}
+
+.identity-layer .section-title {
+  margin-bottom: 0;
+  font-size: 16px;
+}
+
+.identity-layer p {
+  margin: 0;
+  color: #111827;
+  font-size: 15px;
+  font-weight: 650;
+  line-height: 1.45;
+}
+
+.identity-layer input {
+  min-height: 48px;
+  background: #f8fbff;
+  font-size: 15px;
+}
+
+.identity-toast {
+  position: fixed;
+  right: 16px;
+  bottom: 18px;
+  left: 16px;
+  z-index: 20;
+  width: min(calc(100% - 32px), 520px);
+  margin: 0 auto;
+  padding: 14px 16px;
+  border-radius: 16px;
+  background: #111827;
+  color: #ffffff;
+  box-shadow: 0 18px 36px rgba(15, 23, 42, 0.24);
+  font-size: 14px;
+  font-weight: 650;
+  line-height: 1.45;
+  opacity: 0;
+  pointer-events: none;
+  transform: translateY(10px);
+  transition:
+    opacity 160ms ease,
+    transform 160ms ease;
+}
+
+.identity-toast.is-visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
 .projects-view {
   gap: 16px;
 }

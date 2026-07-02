@@ -38,6 +38,17 @@
             <h2 id="activeProjectTitle"></h2>
           </div>
 
+          <section class="identity-layer" aria-labelledby="identity-title">
+            <h2 class="section-title" id="identity-title">🧠 Your Identity</h2>
+            <p id="identityText"></p>
+            <input
+              id="identityInput"
+              type="text"
+              placeholder="我是一个……的人"
+              autocomplete="off"
+            />
+          </section>
+
           <section class="event-section today-section" aria-labelledby="today-title">
             <h2 class="section-title" id="today-title">📅 Today</h2>
             <div class="today-start" aria-label="今日开始状态">
@@ -49,10 +60,11 @@
                 <span id="todayPendingCount">待完成 0</span>
                 <span id="todayCompletedCount">已完成 0</span>
               </div>
-              <p class="today-done-message" id="todayDoneMessage" hidden>
-                🎉 今天完成得很好
-              </p>
-            </div>
+            <p class="today-done-message" id="todayDoneMessage" hidden>
+              🎉 今天完成得很好
+            </p>
+          </div>
+            <div class="today-focus" id="todayFocus" aria-label="今日焦点"></div>
             <p class="today-group-title">Habits</p>
             <ul class="event-list today-list" id="todayList" aria-label="今日待完成习惯"></ul>
             <p class="today-group-title">Tasks</p>
@@ -112,6 +124,8 @@
         </section>
       </section>
     </main>
+
+    <div class="identity-toast" id="identityToast" role="status" aria-live="polite"></div>
 
     <script src="app.js"></script>
   </body>

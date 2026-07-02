@@ -6,6 +6,9 @@ const projectList = document.querySelector("#projectList");
 const backToProjects = document.querySelector("#backToProjects");
 const returnToToday = document.querySelector("#returnToToday");
 const activeProjectTitle = document.querySelector("#activeProjectTitle");
+const identityText = document.querySelector("#identityText");
+const identityInput = document.querySelector("#identityInput");
+const identityToast = document.querySelector("#identityToast");
 const eventForm = document.querySelector("#eventForm");
 const eventInput = document.querySelector("#eventInput");
 const quickInput = document.querySelector("#quickInput");
@@ -19,6 +22,7 @@ const reflectionHabitsText = document.querySelector("#reflectionHabitsText");
 const reflectionTasksText = document.querySelector("#reflectionTasksText");
 const reflectionStreakText = document.querySelector("#reflectionStreakText");
 const reflectionNote = document.querySelector("#reflectionNote");
+const todayFocus = document.querySelector("#todayFocus");
 const summaryList = document.querySelector("#summaryList");
 const todayList = document.querySelector("#todayList");
 const todayTaskList = document.querySelector("#todayTaskList");
@@ -51,6 +55,10 @@ function addDays(dateKey, days) {
 
 function createId(prefix) {
   return `${prefix}-${Date.now()}-${Math.random().toString(16).slice(2)}`;
+}
+
+function getDefaultIdentity(projectName) {
+  return `我是一个持续投入「${projectName}」的人`;
 }
 
 function normalizeCheckIns(checkIns) {
@@ -103,9 +111,12 @@ function normalizeTask(item) {
 }
 
 function normalizeProject(project, index = 0) {
+  const name = project.name || (index === 0 ? "My Life" : "Untitled Project");
+
   return {
     id: project.id || createId("project"),
-    name: project.name || (index === 0 ? "My Life" : "Untitled Project"),
+    name,
+    identity: project.identity || getDefaultIdentity(name),
     habits: Array.isArray(project.habits)
       ? project.habits.map(normalizeHabit).filter((habit) => habit.text)
       : [],
@@ -210,6 +221,7 @@ function createDefaultProject(legacyData = loadLegacyData()) {
   return {
     id: "project-my-life",
     name: "My Life",
+    identity: getDefaultIdentity("My Life"),
     habits: legacyData.habits,
     tasks: legacyData.tasks,
   };
@@ -283,6 +295,8 @@ function getOrderedProjects() {
 
 let activeProjectId = getOrderedProjects()[0]?.id || null;
 let isProjectsPanelOpen = false;
+let focusCompletedNotice = false;
+let identityToastTimer = null;
 
 function getActiveProject() {
   return projects.find((project) => project.id === activeProjectId) || null;
@@ -296,6 +310,13 @@ function getActiveTasks() {
   return getActiveProject()?.tasks || [];
 }
 
+function getActiveIdentity() {
+  const project = getActiveProject();
+  if (!project) return "";
+
+  return project.identity || getDefaultIdentity(project.name);
+}
+
 function isTodayTask(task, today = getDateKey()) {
   return !task.completed && task.dueDate === today;
 }
@@ -303,6 +324,36 @@ function isTodayTask(task, today = getDateKey()) {
 function saveProjects() {
   projects = projects.map(normalizeProject);
   localStorage.setItem(projectsStorageKey, JSON.stringify(projects));
+}
+
+function renderIdentityLayer() {
+  const project = getActiveProject();
+  if (!project) return;
+
+  const identity = project.identity || getDefaultIdentity(project.name);
+  identityText.textContent = identity;
+  identityInput.value = identity;
+}
+
+function saveIdentity() {
+  const project = getActiveProject();
+  if (!project) return;
+
+  project.identity = identityInput.value.trim() || getDefaultIdentity(project.name);
+  saveProjects();
+  renderIdentityLayer();
+}
+
+function showIdentityToast() {
+  const identity = getActiveIdentity();
+  if (!identity) return;
+
+  identityToast.textContent = `你正在成为：${identity}`;
+  identityToast.classList.add("is-visible");
+  window.clearTimeout(identityToastTimer);
+  identityToastTimer = window.setTimeout(() => {
+    identityToast.classList.remove("is-visible");
+  }, 1800);
 }
 
 function focusQuickInput() {
@@ -333,6 +384,30 @@ function createEmptyItem(text) {
   item.className = "empty-item";
   item.textContent = text;
   return item;
+}
+
+function completeHabit(index, item, button) {
+  const project = getActiveProject();
+  const today = getDateKey();
+  if (!project || !project.habits[index]) return false;
+
+  if (isCompletedToday(project.habits[index], today)) {
+    return false;
+  }
+
+  const updatedDates = normalizeCheckIns([
+    ...getCompletedDates(project.habits[index]),
+    today,
+  ]);
+  project.habits[index].checkIns = updatedDates;
+  project.habits[index].completed = updatedDates.includes(today);
+  project.habits[index].completedCount = updatedDates.length;
+  saveProjects();
+  showIdentityToast();
+
+  if (button) button.disabled = true;
+  if (item) item.classList.add("is-completing");
+  return true;
 }
 
 function getProjectActivityLabel(project) {
@@ -396,6 +471,7 @@ function renderProjects() {
       window.setTimeout(() => {
         activeProjectId = project.id;
         isProjectsPanelOpen = false;
+        focusCompletedNotice = false;
         renderApp();
         focusQuickInput();
       }, 160);
@@ -503,22 +579,56 @@ function createHabitItem(habit, index) {
       return;
     }
 
-    const updatedDates = normalizeCheckIns([
-      ...getCompletedDates(project.habits[index]),
-      today,
-    ]);
-    project.habits[index].checkIns = updatedDates;
-    project.habits[index].completed = updatedDates.includes(today);
-    project.habits[index].completedCount = updatedDates.length;
-    saveProjects();
-    button.disabled = true;
-    item.classList.add("is-completing");
-    window.setTimeout(renderProjectContent, 240);
+    if (completeHabit(index, item, button)) {
+      window.setTimeout(renderProjectContent, 240);
+    }
   });
 
   info.append(text, statsText, streakText);
   item.append(info, button);
   return item;
+}
+
+function renderTodayFocus(project) {
+  todayFocus.innerHTML = "";
+
+  const focusIndex = project.habits.findIndex((habit) => !isCompletedToday(habit));
+  const card = document.createElement("button");
+  card.className = "focus-card";
+  card.type = "button";
+
+  const title = document.createElement("span");
+  title.className = "focus-title";
+  title.textContent = "🎯 Today Focus";
+
+  const text = document.createElement("span");
+  text.className = "focus-text";
+
+  const hint = document.createElement("span");
+  hint.className = "focus-hint";
+
+  if (focusCompletedNotice || (project.habits.length > 0 && focusIndex === -1)) {
+    card.classList.add("is-focus-complete");
+    text.textContent = "今天的重点已完成 ✔";
+    hint.textContent = "很好，今天已经有一个清晰闭环";
+    card.disabled = true;
+  } else if (focusIndex === -1) {
+    text.textContent = "选择一个今天最重要的习惯";
+    hint.textContent = "添加 Habit 后，这里会自动生成焦点";
+    card.disabled = true;
+  } else {
+    text.textContent = project.habits[focusIndex].text;
+    hint.textContent = "点击完成今日焦点";
+    card.addEventListener("click", () => {
+      if (!completeHabit(focusIndex, card, card)) return;
+
+      focusCompletedNotice = true;
+      window.setTimeout(renderProjectContent, 240);
+    });
+  }
+
+  card.append(title, text, hint);
+  todayFocus.append(card);
 }
 
 function createTaskItem(task, index) {
@@ -548,6 +658,7 @@ function createTaskItem(task, index) {
 
     project.tasks[index].completed = true;
     saveProjects();
+    showIdentityToast();
     button.disabled = true;
     item.classList.add("is-completing");
     window.setTimeout(renderProjectContent, 240);
@@ -563,6 +674,8 @@ function renderProjectContent() {
   if (!project) return;
 
   activeProjectTitle.textContent = project.name;
+  renderIdentityLayer();
+  renderTodayFocus(project);
   renderDailyLoop();
   renderSummary();
   todayList.innerHTML = "";
@@ -641,6 +754,7 @@ function addHabit(text) {
     completedCount: 0,
     checkIns: [],
   });
+  focusCompletedNotice = false;
   saveProjects();
   renderProjectContent();
 }
@@ -654,6 +768,7 @@ projectForm.addEventListener("submit", (event) => {
   projects.push({
     id: createId("project"),
     name,
+    identity: getDefaultIdentity(name),
     habits: [],
     tasks: [],
   });
@@ -670,8 +785,19 @@ backToProjects.addEventListener("click", () => {
 
 returnToToday.addEventListener("click", () => {
   isProjectsPanelOpen = false;
+  focusCompletedNotice = false;
   renderApp();
   focusQuickInput();
+});
+
+identityInput.addEventListener("change", saveIdentity);
+
+identityInput.addEventListener("keydown", (event) => {
+  if (event.key !== "Enter") return;
+
+  event.preventDefault();
+  saveIdentity();
+  identityInput.blur();
 });
 
 quickInput.addEventListener("keydown", (event) => {
