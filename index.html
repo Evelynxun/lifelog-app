@@ -50,7 +50,10 @@
                 🎉 今天完成得很好
               </p>
             </div>
-            <ul class="event-list today-list" id="todayList" aria-label="今日待完成事件"></ul>
+            <p class="today-group-title">Habits</p>
+            <ul class="event-list today-list" id="todayList" aria-label="今日待完成习惯"></ul>
+            <p class="today-group-title">Tasks</p>
+            <ul class="event-list today-list" id="todayTaskList" aria-label="今日待完成任务"></ul>
           </section>
 
           <div class="quick-entry">
@@ -94,6 +97,14 @@
             <h2 class="section-title" id="daily-summary-title">📌 Today Summary</h2>
             <p id="todaySummaryText"></p>
             <p id="todayStreakText"></p>
+          </section>
+
+          <section class="daily-summary reflection-section" aria-labelledby="reflection-title">
+            <h2 class="section-title" id="reflection-title">📌 Today Reflection</h2>
+            <p id="reflectionHabitsText"></p>
+            <p id="reflectionTasksText"></p>
+            <p id="reflectionStreakText"></p>
+            <p class="reflection-note" id="reflectionNote"></p>
           </section>
         </section>
       </section>
