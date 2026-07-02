@@ -516,11 +516,27 @@ button:disabled {
   opacity: 0.58;
 }
 
+.today-section .quick-entry {
+  opacity: 1;
+  margin-top: 16px;
+  background: rgba(255, 255, 255, 0.7);
+  box-shadow: none;
+}
+
 .quick-entry,
 .event-form,
 .summary-section,
 .daily-summary {
   box-shadow: none;
+}
+
+.return-today-button {
+  justify-self: start;
+  margin-bottom: -4px;
+  opacity: 1;
+  background: var(--color-primary);
+  color: #ffffff;
+  box-shadow: 0 8px 18px rgba(10, 132, 255, 0.18);
 }
 
 .project-view > .event-section:not(.today-section) .section-title,
@@ -529,6 +545,211 @@ button:disabled {
   color: var(--color-secondary);
   font-size: 14px;
   font-weight: 620;
+}
+
+.project-view,
+.projects-view,
+.quick-entry,
+.event-form,
+.project-view > .event-section,
+.summary-section,
+.daily-summary,
+.event-list li,
+.project-card {
+  opacity: 1;
+}
+
+.event-list li,
+.project-card,
+.quick-entry,
+.event-form,
+.summary-section,
+.daily-summary {
+  border-color: rgba(60, 72, 88, 0.14);
+  box-shadow: 0 12px 28px rgba(33, 53, 77, 0.1);
+}
+
+.event-text,
+.section-title,
+.loop-label {
+  color: var(--color-text);
+}
+
+.stats-text,
+.streak-text,
+.daily-summary p,
+.summary-list {
+  color: #5d6673;
+}
+
+.event-list li.is-completing {
+  opacity: 0;
+}
+
+body {
+  background:
+    linear-gradient(180deg, #eef5ff 0%, #f8fbff 44%, #ffffff 100%);
+}
+
+:root {
+  --color-text: #111827;
+  --color-secondary: #4b5563;
+  --color-card: #ffffff;
+  --color-card-muted: #f2f6fb;
+  --shadow-card: 0 14px 30px rgba(15, 23, 42, 0.12);
+  --shadow-focus: 0 22px 48px rgba(10, 132, 255, 0.24);
+}
+
+.app {
+  padding: 24px 16px 56px;
+}
+
+h1 {
+  margin-bottom: 16px;
+  color: #111827;
+}
+
+.today-section {
+  position: relative;
+  padding: 18px 16px;
+  border: 1px solid rgba(10, 132, 255, 0.32);
+  border-left: 7px solid var(--color-primary);
+  border-radius: 24px;
+  background: linear-gradient(180deg, #dceeff 0%, #f8fbff 100%);
+  box-shadow: var(--shadow-focus);
+}
+
+.today-group-title {
+  margin: 16px 0 8px;
+  color: #1f2937;
+  font-size: 15px;
+  font-weight: 800;
+}
+
+.today-list li {
+  border-color: rgba(10, 132, 255, 0.3);
+  background: #ffffff;
+  box-shadow: 0 16px 34px rgba(10, 132, 255, 0.16);
+}
+
+.today-section .quick-entry {
+  border-color: rgba(10, 132, 255, 0.26);
+  background: #ffffff;
+  box-shadow: 0 12px 24px rgba(10, 132, 255, 0.12);
+}
+
+.projects-view {
+  gap: 16px;
+}
+
+.project-card {
+  border-color: rgba(15, 23, 42, 0.1);
+  background: #ffffff;
+  box-shadow: 0 8px 18px rgba(15, 23, 42, 0.08);
+}
+
+.project-card:not(.is-default-project) {
+  opacity: 0.82;
+  padding: 13px 14px;
+}
+
+.project-card:not(.is-default-project) .event-text {
+  font-size: 15px;
+  font-weight: 620;
+}
+
+.project-card:not(.is-default-project) .stats-text,
+.project-card:not(.is-default-project) .streak-text {
+  font-size: 12px;
+}
+
+.project-card.is-default-project {
+  padding: 22px 18px;
+  border: 1px solid rgba(10, 132, 255, 0.42);
+  background: linear-gradient(180deg, #bfe0ff 0%, #e7f3ff 100%);
+  box-shadow: 0 24px 54px rgba(10, 132, 255, 0.28);
+}
+
+.project-card.is-default-project .event-text {
+  font-size: 22px;
+  font-weight: 820;
+  color: #0f172a;
+}
+
+.project-card.is-default-project .stats-text {
+  color: #1f2937;
+  font-size: 14px;
+  font-weight: 650;
+}
+
+.project-card.is-default-project .streak-text {
+  color: #334155;
+  font-size: 13px;
+}
+
+.project-card.is-default-project .check-in-button {
+  min-height: 50px;
+  min-width: 112px;
+  box-shadow: 0 12px 24px rgba(10, 132, 255, 0.24);
+}
+
+.event-section,
+.summary-section,
+.daily-summary,
+.quick-entry,
+.event-form {
+  margin-top: 24px;
+}
+
+.event-list {
+  gap: 16px;
+}
+
+.event-list li,
+.quick-entry,
+.event-form,
+.summary-section,
+.daily-summary {
+  border-color: rgba(15, 23, 42, 0.12);
+  background-color: #ffffff;
+  box-shadow: var(--shadow-card);
+}
+
+.project-view > .event-section:not(.today-section),
+.summary-section,
+.daily-summary,
+.event-form {
+  opacity: 0.86;
+}
+
+.section-title {
+  color: #111827;
+  font-weight: 780;
+}
+
+.project-view > .event-section:not(.today-section) .section-title,
+.summary-section .section-title,
+.daily-summary .section-title {
+  color: #475569;
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.event-text {
+  color: #111827;
+}
+
+.stats-text,
+.streak-text,
+.daily-summary p,
+.summary-list {
+  color: #475569;
+}
+
+.back-button {
+  color: #334155;
+  background: #e2edf8;
+  opacity: 0.9;
 }
 
 @keyframes view-in {

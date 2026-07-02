@@ -15,6 +15,9 @@
         <h1 id="page-title">Life OS</h1>
 
         <section class="projects-view" id="projectsView" aria-labelledby="projects-title">
+          <button class="back-button return-today-button" id="returnToToday" type="button">
+            Today
+          </button>
           <h2 class="section-title" id="projects-title">Projects</h2>
           <form class="project-form" id="projectForm">
             <label class="field-label" for="projectInput">新建 Project</label>
@@ -54,17 +57,17 @@
             <ul class="event-list today-list" id="todayList" aria-label="今日待完成习惯"></ul>
             <p class="today-group-title">Tasks</p>
             <ul class="event-list today-list" id="todayTaskList" aria-label="今日待完成任务"></ul>
-          </section>
 
-          <div class="quick-entry">
-            <label class="field-label" for="quickInput">快速记录</label>
-            <input
-              id="quickInput"
-              type="text"
-              placeholder="输入一句话，按 Enter 添加"
-              autocomplete="off"
-            />
-          </div>
+            <div class="quick-entry">
+              <label class="field-label" for="quickInput">快速记录</label>
+              <input
+                id="quickInput"
+                type="text"
+                placeholder="输入一句话，按 Enter 添加"
+                autocomplete="off"
+              />
+            </div>
+          </section>
 
           <form class="event-form" id="eventForm">
             <label class="field-label" for="eventInput">事件内容</label>

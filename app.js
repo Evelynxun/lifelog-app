@@ -4,6 +4,7 @@ const projectForm = document.querySelector("#projectForm");
 const projectInput = document.querySelector("#projectInput");
 const projectList = document.querySelector("#projectList");
 const backToProjects = document.querySelector("#backToProjects");
+const returnToToday = document.querySelector("#returnToToday");
 const activeProjectTitle = document.querySelector("#activeProjectTitle");
 const eventForm = document.querySelector("#eventForm");
 const eventInput = document.querySelector("#eventInput");
@@ -25,6 +26,14 @@ const eventList = document.querySelector("#eventList");
 const taskList = document.querySelector("#taskList");
 const legacyStorageKey = "eventList";
 const projectsStorageKey = "lifeLogProjects";
+const legacyStorageKeys = [
+  "eventList",
+  "lifelog-data",
+  "habits",
+  "tasks",
+  "projects",
+  "myLife",
+];
 
 function getDateKey(date = new Date()) {
   const year = date.getFullYear();
@@ -106,40 +115,156 @@ function normalizeProject(project, index = 0) {
   };
 }
 
-function loadLegacyHabits() {
+function readStorageValue(key) {
   try {
-    const savedEvents = JSON.parse(localStorage.getItem(legacyStorageKey)) || [];
-    if (!Array.isArray(savedEvents)) return [];
-    return savedEvents.map(normalizeHabit).filter((habit) => habit.text);
+    const rawValue = localStorage.getItem(key);
+    if (!rawValue) return null;
+    return JSON.parse(rawValue);
   } catch {
-    return [];
+    return null;
   }
 }
 
-function createDefaultProject() {
+function mergeUniqueByText(existingItems, incomingItems) {
+  const seen = new Set(
+    existingItems.map((item) => `${item.type || ""}:${item.text}:${item.dueDate || ""}`),
+  );
+  const mergedItems = [...existingItems];
+
+  incomingItems.forEach((item) => {
+    const key = `${item.type || ""}:${item.text}:${item.dueDate || ""}`;
+    if (seen.has(key)) return;
+    seen.add(key);
+    mergedItems.push(item);
+  });
+
+  return mergedItems;
+}
+
+function collectLegacyData(value) {
+  const habits = [];
+  const tasks = [];
+  const projectsFromValue = [];
+
+  function collect(input, context = "") {
+    if (!input) return;
+
+    if (Array.isArray(input)) {
+      input.forEach((item) => collect(item, context));
+      return;
+    }
+
+    if (typeof input !== "object") return;
+
+    if (Array.isArray(input.projects)) {
+      input.projects.forEach((project) => {
+        projectsFromValue.push(normalizeProject(project));
+      });
+    }
+
+    if (Array.isArray(input.habits)) {
+      habits.push(...input.habits.map(normalizeHabit).filter((habit) => habit.text));
+    }
+
+    if (Array.isArray(input.tasks)) {
+      tasks.push(...input.tasks.map(normalizeTask).filter((task) => task.text));
+    }
+
+    if (Array.isArray(input.events)) {
+      habits.push(...input.events.map(normalizeHabit).filter((habit) => habit.text));
+    }
+
+    if (
+      input.text ||
+      input.name ||
+      input.title
+    ) {
+      if (context === "tasks" || input.type === "task" || input.dueDate || input.deadline) {
+        const task = normalizeTask(input);
+        if (task.text) tasks.push(task);
+      } else {
+        const habit = normalizeHabit(input);
+        if (habit.text) habits.push(habit);
+      }
+    }
+  }
+
+  collect(value);
+  return { habits, tasks, projects: projectsFromValue };
+}
+
+function loadLegacyData() {
+  return legacyStorageKeys.reduce(
+    (result, key) => {
+      const data = collectLegacyData(readStorageValue(key));
+      result.habits.push(...data.habits);
+      result.tasks.push(...data.tasks);
+      result.projects.push(...data.projects);
+      return result;
+    },
+    { habits: [], tasks: [], projects: [] },
+  );
+}
+
+function createDefaultProject(legacyData = loadLegacyData()) {
   return {
     id: "project-my-life",
     name: "My Life",
-    habits: loadLegacyHabits(),
-    tasks: [],
+    habits: legacyData.habits,
+    tasks: legacyData.tasks,
   };
 }
 
+function mergeProjects(existingProjects, incomingProjects) {
+  const mergedProjects = [...existingProjects];
+
+  incomingProjects.forEach((incomingProject) => {
+    const normalizedIncoming = normalizeProject(incomingProject);
+    const match = mergedProjects.find(
+      (project) =>
+        project.id === normalizedIncoming.id || project.name === normalizedIncoming.name,
+    );
+
+    if (!match) {
+      mergedProjects.push(normalizedIncoming);
+      return;
+    }
+
+    match.habits = mergeUniqueByText(match.habits, normalizedIncoming.habits);
+    match.tasks = mergeUniqueByText(match.tasks, normalizedIncoming.tasks);
+  });
+
+  return mergedProjects;
+}
+
 function loadProjects() {
+  const legacyData = loadLegacyData();
+  const defaultProject = normalizeProject(createDefaultProject(legacyData));
+
   try {
     const savedProjects = JSON.parse(localStorage.getItem(projectsStorageKey));
     if (Array.isArray(savedProjects) && savedProjects.length) {
-      const normalizedProjects = savedProjects.map(normalizeProject);
+      let normalizedProjects = savedProjects.map(normalizeProject);
       if (!normalizedProjects.some(isMyLifeProject)) {
-        normalizedProjects.unshift(normalizeProject(createDefaultProject()));
+        normalizedProjects.unshift(defaultProject);
+      } else {
+        normalizedProjects = normalizedProjects.map((project) => {
+          if (!isMyLifeProject(project)) return project;
+
+          return {
+            ...project,
+            habits: mergeUniqueByText(project.habits, defaultProject.habits),
+            tasks: mergeUniqueByText(project.tasks, defaultProject.tasks),
+          };
+        });
       }
-      return normalizedProjects;
+      return mergeProjects(normalizedProjects, legacyData.projects);
     }
   } catch {
-    return [normalizeProject(createDefaultProject())];
+    return mergeProjects([defaultProject], legacyData.projects);
   }
 
-  return [normalizeProject(createDefaultProject())];
+  return mergeProjects([defaultProject], legacyData.projects);
 }
 
 let projects = loadProjects();
@@ -157,6 +282,7 @@ function getOrderedProjects() {
 }
 
 let activeProjectId = getOrderedProjects()[0]?.id || null;
+let isProjectsPanelOpen = false;
 
 function getActiveProject() {
   return projects.find((project) => project.id === activeProjectId) || null;
@@ -269,6 +395,7 @@ function renderProjects() {
       openButton.disabled = true;
       window.setTimeout(() => {
         activeProjectId = project.id;
+        isProjectsPanelOpen = false;
         renderApp();
         focusQuickInput();
       }, 160);
@@ -286,7 +413,7 @@ function renderSummary() {
   const recentDates = new Set(getRecentDateKeys(7));
 
   if (!habits.length) {
-    summaryList.append(createEmptyItem("开始记录后，这里会显示最近7天趋势"));
+    summaryList.append(createEmptyItem("暂无数据"));
     return;
   }
 
@@ -481,15 +608,25 @@ function renderProjectContent() {
 }
 
 function renderApp() {
-  const project = getActiveProject();
-  projectsView.hidden = Boolean(project);
-  projectView.hidden = !project;
-
-  if (project) {
-    renderProjectContent();
-  } else {
-    renderProjects();
+  if (!activeProjectId) {
+    activeProjectId = getOrderedProjects()[0]?.id || null;
   }
+
+  let project = getActiveProject();
+  if (!project) {
+    activeProjectId = getOrderedProjects()[0]?.id || null;
+    project = getActiveProject();
+  }
+
+  projectsView.hidden = !isProjectsPanelOpen;
+  projectView.hidden = isProjectsPanelOpen;
+
+  if (isProjectsPanelOpen) {
+    renderProjects();
+    return;
+  }
+
+  renderProjectContent();
 }
 
 function addHabit(text) {
@@ -526,9 +663,15 @@ projectForm.addEventListener("submit", (event) => {
 });
 
 backToProjects.addEventListener("click", () => {
-  activeProjectId = null;
+  isProjectsPanelOpen = true;
   renderApp();
   projectInput.focus({ preventScroll: true });
+});
+
+returnToToday.addEventListener("click", () => {
+  isProjectsPanelOpen = false;
+  renderApp();
+  focusQuickInput();
 });
 
 quickInput.addEventListener("keydown", (event) => {
