@@ -14,8 +14,13 @@ const todayCompletedCount = document.querySelector("#todayCompletedCount");
 const todayDoneMessage = document.querySelector("#todayDoneMessage");
 const todaySummaryText = document.querySelector("#todaySummaryText");
 const todayStreakText = document.querySelector("#todayStreakText");
+const reflectionHabitsText = document.querySelector("#reflectionHabitsText");
+const reflectionTasksText = document.querySelector("#reflectionTasksText");
+const reflectionStreakText = document.querySelector("#reflectionStreakText");
+const reflectionNote = document.querySelector("#reflectionNote");
 const summaryList = document.querySelector("#summaryList");
 const todayList = document.querySelector("#todayList");
+const todayTaskList = document.querySelector("#todayTaskList");
 const eventList = document.querySelector("#eventList");
 const taskList = document.querySelector("#taskList");
 const legacyStorageKey = "eventList";
@@ -124,7 +129,11 @@ function loadProjects() {
   try {
     const savedProjects = JSON.parse(localStorage.getItem(projectsStorageKey));
     if (Array.isArray(savedProjects) && savedProjects.length) {
-      return savedProjects.map(normalizeProject);
+      const normalizedProjects = savedProjects.map(normalizeProject);
+      if (!normalizedProjects.some(isMyLifeProject)) {
+        normalizedProjects.unshift(normalizeProject(createDefaultProject()));
+      }
+      return normalizedProjects;
     }
   } catch {
     return [normalizeProject(createDefaultProject())];
@@ -134,7 +143,20 @@ function loadProjects() {
 }
 
 let projects = loadProjects();
-let activeProjectId = null;
+
+function isMyLifeProject(project) {
+  return project.id === "project-my-life" || project.name === "My Life";
+}
+
+function getOrderedProjects() {
+  return [...projects].sort((first, second) => {
+    if (isMyLifeProject(first)) return -1;
+    if (isMyLifeProject(second)) return 1;
+    return first.name.localeCompare(second.name);
+  });
+}
+
+let activeProjectId = getOrderedProjects()[0]?.id || null;
 
 function getActiveProject() {
   return projects.find((project) => project.id === activeProjectId) || null;
@@ -146,6 +168,10 @@ function getActiveHabits() {
 
 function getActiveTasks() {
   return getActiveProject()?.tasks || [];
+}
+
+function isTodayTask(task, today = getDateKey()) {
+  return !task.completed && task.dueDate === today;
 }
 
 function saveProjects() {
@@ -183,12 +209,41 @@ function createEmptyItem(text) {
   return item;
 }
 
+function getProjectActivityLabel(project) {
+  const latestHabitDate = project.habits
+    .flatMap((habit) => getCompletedDates(habit))
+    .sort()
+    .at(-1);
+
+  if (latestHabitDate === getDateKey()) {
+    return "Active today";
+  }
+
+  if (latestHabitDate) {
+    return `Last active ${latestHabitDate}`;
+  }
+
+  if (project.tasks.some((task) => task.completed)) {
+    return "Tasks in progress";
+  }
+
+  return "No activity yet";
+}
+
 function renderProjects() {
   projectList.innerHTML = "";
 
-  projects.forEach((project) => {
+  if (!projects.length) {
+    projectList.append(createEmptyItem("Create your first Project to start your Life OS"));
+    return;
+  }
+
+  getOrderedProjects().forEach((project) => {
     const item = document.createElement("li");
     item.className = "project-card";
+    if (isMyLifeProject(project)) {
+      item.classList.add("is-default-project");
+    }
 
     const info = document.createElement("div");
     info.className = "event-info";
@@ -197,21 +252,29 @@ function renderProjects() {
     name.className = "event-text";
     name.textContent = project.name;
 
-    const meta = document.createElement("span");
-    meta.className = "stats-text";
-    meta.textContent = `${project.habits.length} habits · ${project.tasks.length} tasks`;
+    const counts = document.createElement("span");
+    counts.className = "stats-text";
+    counts.textContent = `${project.habits.length} Habits · ${project.tasks.length} Tasks`;
+
+    const activity = document.createElement("span");
+    activity.className = "streak-text";
+    activity.textContent = getProjectActivityLabel(project);
 
     const openButton = document.createElement("button");
     openButton.className = "check-in-button";
     openButton.type = "button";
     openButton.textContent = "Open";
     openButton.addEventListener("click", () => {
-      activeProjectId = project.id;
-      renderApp();
-      focusQuickInput();
+      item.classList.add("is-opening");
+      openButton.disabled = true;
+      window.setTimeout(() => {
+        activeProjectId = project.id;
+        renderApp();
+        focusQuickInput();
+      }, 160);
     });
 
-    info.append(name, meta);
+    info.append(name, counts, activity);
     item.append(info, openButton);
     projectList.append(item);
   });
@@ -240,11 +303,18 @@ function renderSummary() {
 
 function renderDailyLoop() {
   const habits = getActiveHabits();
+  const tasks = getActiveTasks();
   const today = getDateKey();
-  const completedToday = habits.filter((habit) =>
+  const completedHabitsToday = habits.filter((habit) =>
     isCompletedToday(habit, today),
   ).length;
-  const pendingToday = habits.length - completedToday;
+  const completedTasksToday = tasks.filter(
+    (task) => task.completed && task.dueDate === today,
+  ).length;
+  const completedToday = completedHabitsToday + completedTasksToday;
+  const pendingToday =
+    habits.filter((habit) => !isCompletedToday(habit, today)).length +
+    tasks.filter((task) => isTodayTask(task, today)).length;
   const bestStreak = habits.reduce((best, habit) => {
     return Math.max(best, calculateStreak(getCompletedDates(habit)));
   }, 0);
@@ -255,6 +325,17 @@ function renderDailyLoop() {
   todayDoneMessage.hidden = !habits.length || pendingToday > 0;
   todaySummaryText.textContent = `今天完成了 ${completedToday} 个任务`;
   todayStreakText.textContent = `当前最高连续 ${bestStreak} 天`;
+  reflectionHabitsText.textContent = `今日完成 Habits：${completedHabitsToday}`;
+  reflectionTasksText.textContent = `今日完成 Tasks：${completedTasksToday}`;
+  reflectionStreakText.textContent = `当前 streak：${bestStreak} 天`;
+
+  if (completedHabitsToday > 0) {
+    reflectionNote.textContent = `今天你完成了 ${completedHabitsToday} 个习惯，保持了不错的节奏`;
+  } else if (habits.length > 0) {
+    reflectionNote.textContent = "今天没有完成 Habit，可以明天重新开始";
+  } else {
+    reflectionNote.textContent = "先添加一个 Habit，开始建立你的每日节奏";
+  }
 }
 
 function createHabitItem(habit, index) {
@@ -358,25 +439,36 @@ function renderProjectContent() {
   renderDailyLoop();
   renderSummary();
   todayList.innerHTML = "";
+  todayTaskList.innerHTML = "";
   eventList.innerHTML = "";
   taskList.innerHTML = "";
 
-  let hasTodayItems = false;
+  let hasTodayHabits = false;
+  let hasTodayTasks = false;
   project.habits.forEach((habit, index) => {
     if (!isCompletedToday(habit)) {
       todayList.append(createHabitItem(habit, index));
-      hasTodayItems = true;
+      hasTodayHabits = true;
     }
 
     eventList.append(createHabitItem(habit, index));
   });
 
   project.tasks.forEach((task, index) => {
+    if (isTodayTask(task)) {
+      todayTaskList.append(createTaskItem(task, index));
+      hasTodayTasks = true;
+    }
+
     taskList.append(createTaskItem(task, index));
   });
 
-  if (!hasTodayItems) {
+  if (!hasTodayHabits) {
     todayList.append(createEmptyItem("今天没有待完成习惯"));
+  }
+
+  if (!hasTodayTasks) {
+    todayTaskList.append(createEmptyItem("今天没有待完成任务"));
   }
 
   if (!project.habits.length) {
