@@ -1,4 +1,4 @@
-const CACHE_NAME = "life-log-v1";
+const CACHE_NAME = "life-log-v5";
 const APP_SHELL = [
   "./",
   "index.html",

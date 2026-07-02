@@ -12,43 +12,89 @@
   <body>
     <main class="app">
       <section class="panel" aria-labelledby="page-title">
-        <h1 id="page-title">事件列表</h1>
+        <h1 id="page-title">Life OS</h1>
 
-        <div class="quick-entry">
-          <label class="field-label" for="quickInput">快速记录</label>
-          <input
-            id="quickInput"
-            type="text"
-            placeholder="输入一句话，按 Enter 添加"
-            autocomplete="off"
-          />
-        </div>
-
-        <section class="summary-section" aria-labelledby="summary-title">
-          <h2 class="section-title" id="summary-title">📊 最近7天概览</h2>
-          <ul class="summary-list" id="summaryList" aria-label="最近7天完成概览"></ul>
+        <section class="projects-view" id="projectsView" aria-labelledby="projects-title">
+          <h2 class="section-title" id="projects-title">Projects</h2>
+          <form class="project-form" id="projectForm">
+            <label class="field-label" for="projectInput">新建 Project</label>
+            <input
+              id="projectInput"
+              type="text"
+              placeholder="输入项目名称"
+              autocomplete="off"
+            />
+            <button type="submit">创建 Project</button>
+          </form>
+          <ul class="project-list" id="projectList" aria-label="项目列表"></ul>
         </section>
 
-        <section class="event-section today-section" aria-labelledby="today-title">
-          <h2 class="section-title" id="today-title">📅 Today</h2>
-          <ul class="event-list today-list" id="todayList" aria-label="今日待完成事件"></ul>
-        </section>
+        <section class="project-view" id="projectView" hidden>
+          <div class="project-header">
+            <button class="back-button" id="backToProjects" type="button">Projects</button>
+            <h2 id="activeProjectTitle"></h2>
+          </div>
 
-        <form class="event-form" id="eventForm">
-          <label class="field-label" for="eventInput">事件内容</label>
-          <input
-            id="eventInput"
-            name="event"
-            type="text"
-            placeholder="输入一件想记录的事"
-            autocomplete="off"
-          />
-          <button type="submit">添加事件</button>
-        </form>
+          <section class="event-section today-section" aria-labelledby="today-title">
+            <h2 class="section-title" id="today-title">📅 Today</h2>
+            <div class="today-start" aria-label="今日开始状态">
+              <div>
+                <p class="loop-label">🌅 Today Start</p>
+                <p class="today-date" id="todayDate"></p>
+              </div>
+              <div class="today-metrics">
+                <span id="todayPendingCount">待完成 0</span>
+                <span id="todayCompletedCount">已完成 0</span>
+              </div>
+              <p class="today-done-message" id="todayDoneMessage" hidden>
+                🎉 今天完成得很好
+              </p>
+            </div>
+            <ul class="event-list today-list" id="todayList" aria-label="今日待完成事件"></ul>
+          </section>
 
-        <section class="event-section" aria-labelledby="all-events-title">
-          <h2 class="section-title" id="all-events-title">All Events</h2>
-          <ul class="event-list" id="eventList" aria-label="已添加事件"></ul>
+          <div class="quick-entry">
+            <label class="field-label" for="quickInput">快速记录</label>
+            <input
+              id="quickInput"
+              type="text"
+              placeholder="输入一句话，按 Enter 添加"
+              autocomplete="off"
+            />
+          </div>
+
+          <form class="event-form" id="eventForm">
+            <label class="field-label" for="eventInput">事件内容</label>
+            <input
+              id="eventInput"
+              name="event"
+              type="text"
+              placeholder="输入一件想记录的事"
+              autocomplete="off"
+            />
+            <button type="submit">添加事件</button>
+          </form>
+
+          <section class="event-section" aria-labelledby="all-events-title">
+            <h2 class="section-title" id="all-events-title">Habits · All Events</h2>
+            <ul class="event-list" id="eventList" aria-label="已添加事件"></ul>
+          </section>
+
+          <section class="event-section" aria-labelledby="tasks-title">
+            <h2 class="section-title" id="tasks-title">Tasks</h2>
+            <ul class="event-list" id="taskList" aria-label="任务列表"></ul>
+          </section>
+
+          <section class="summary-section" aria-labelledby="summary-title">
+            <h2 class="section-title" id="summary-title">📊 最近7天概览</h2>
+            <ul class="summary-list" id="summaryList" aria-label="最近7天完成概览"></ul>
+          </section>
+
+          <section class="daily-summary" aria-labelledby="daily-summary-title">
+            <h2 class="section-title" id="daily-summary-title">📌 Today Summary</h2>
+            <p id="todaySummaryText"></p>
+            <p id="todayStreakText"></p>
+          </section>
         </section>
       </section>
     </main>
